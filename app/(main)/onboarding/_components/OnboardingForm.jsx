@@ -28,6 +28,7 @@ import {
 import useFetch from '@/hooks/useFetch'
 import { updateUser } from '@/actions/user'
 import { toast } from 'sonner'
+import { Loader2 } from "lucide-react";
 
 const OnboardingForm = ({ industries }) => {
     const router = useRouter();
