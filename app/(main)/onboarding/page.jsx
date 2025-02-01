@@ -1,8 +1,12 @@
 import React from 'react'
+import { industries } from '@/data/industries'
+import OnboardingForm from './_components/OnboardingForm'
 
 const Onboarding = () => {
   return (
-    <div className='text-white'>Onboarding</div>
+    <main>
+      <OnboardingForm industries={industries} />
+    </main>
   )
 }
 
