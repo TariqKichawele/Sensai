@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { onboardingSchema } from '@/lib/schema'
@@ -25,10 +25,19 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import useFetch from '@/hooks/useFetch'
+import { updateUser } from '@/actions/user'
+import { toast } from 'sonner'
 
 const OnboardingForm = ({ industries }) => {
     const router = useRouter();
     const [selectedIndustry, setSelectedIndustry] = useState(null);
+
+    const {
+        loading: updateLoading,
+        fn: updateUserFn,
+        data: updateResult
+    } = useFetch(updateUser);
 
     const {
         register,
@@ -40,13 +49,29 @@ const OnboardingForm = ({ industries }) => {
         resolver: zodResolver(onboardingSchema),
     });
 
-    const onSubmit = async (data) => {
-        console.log(data);
-    }
+    const onSubmit = async (values) => {
+        try {
+            const formattedIndustry = `${values.industry} - ${values.subIndustry.toLowerCase().replace(/ /g, "-")}`;
+
+            await updateUserFn({
+                ...values,
+                industry: formattedIndustry
+            })
+        } catch (error) {
+            console.error("Error updating user:", error.message);
+        }
+    };
+
+    useEffect(() => {
+        if (updateResult?.success && !updateLoading) {
+            toast.success("Profile updated successfully");
+            router.push("/dashboard");
+            router.refresh();
+        }
+    }, [updateResult, updateLoading]);
 
     const watchIndustry = watch('industry');
 
-    const updateLoading = false;
   return (
     <div className="flex items-center justify-center bg-background">
         <Card className="w-full max-w-lg mt-10 mx-2">
@@ -114,9 +139,9 @@ const OnboardingForm = ({ industries }) => {
                                 </SelectContent>
                             </Select>
                             {errors.subIndustry && (
-                            <p className="text-sm text-red-500">
-                                {errors.subIndustry.message}
-                            </p>
+                                <p className="text-sm text-red-500">
+                                    {errors.subIndustry.message}
+                                </p>
                             )}
                         </div>
                     )}
@@ -167,14 +192,14 @@ const OnboardingForm = ({ industries }) => {
                     </div>
 
                     <Button type="submit" className="w-full" disabled={updateLoading}>
-                    {updateLoading ? (
-                        <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Saving...
-                        </>
-                    ) : (
-                        "Complete Profile"
-                    )}
+                        {updateLoading ? (
+                            <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Saving...
+                            </>
+                        ) : (
+                            "Complete Profile"
+                        )}
                     </Button>
                 </form>
             </CardContent>
