@@ -2,6 +2,8 @@
 
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
@@ -21,8 +23,7 @@ export async function generateQuiz() {
 
     const prompt = `
         Generate 10 technical interview questions for a ${user.industry} professional${
-        user.skills?.length ? ` with expertise in ${user.skills.join(", ")}` : ""
-    }.
+            user.skills?.length ? ` with expertise in ${user.skills.join(", ")}` : ""}.
         
         Each question should be multiple choice with 4 options.
         
@@ -58,9 +59,7 @@ export async function saveQuizResults(questions, answers, score) {
     if (!userId) throw new Error("Not signed in");
 
     const user = await db.user.findUnique({
-        where: {
-            clerkUserId: userId
-        }
+        where: { clerkUserId: userId }
     });
     if (!user) throw new Error("User not found");
 
